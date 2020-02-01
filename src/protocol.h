@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2018  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +32,15 @@ class Protocol : public std::enable_shared_from_this<Protocol>
 		Protocol(const Protocol&) = delete;
 		Protocol& operator=(const Protocol&) = delete;
 
+		enum ChecksumMethods_t : uint8_t {
+			CHECKSUM_METHOD_NONE,
+			CHECKSUM_METHOD_ADLER32,
+			CHECKSUM_METHOD_SEQUENCE
+		};
+
 		virtual void parsePacket(NetworkMessage&) {}
 
-		virtual void onSendMessage(const OutputMessage_ptr& msg) const;
+		virtual void onSendMessage(const OutputMessage_ptr& msg);
 		void onRecvMessage(NetworkMessage& msg);
 		virtual void onRecvFirstMessage(NetworkMessage& msg) = 0;
 		virtual void onConnect() {}
@@ -74,18 +80,10 @@ class Protocol : public std::enable_shared_from_this<Protocol>
 		void setXTEAKey(const uint32_t* key) {
 			memcpy(this->key, key, sizeof(*key) * 4);
 		}
-		void disableChecksum() {
-			checksumEnabled = false;
-		}
-		void enableCompact() {
-			compactCrypt = true;
-		}
-		bool isCompact() {
-			return compactCrypt;
+		void setChecksumMethod(ChecksumMethods_t method) {
+			checksumMethod = method;
 		}
 
-		void XTEA_encrypt(OutputMessage& msg) const;
-		bool XTEA_decrypt(NetworkMessage& msg) const;
 		static bool RSA_decrypt(NetworkMessage& msg);
 
 		void setRawMessages(bool value) {
@@ -93,15 +91,20 @@ class Protocol : public std::enable_shared_from_this<Protocol>
 		}
 
 		virtual void release() {}
+
+	private:
+		void XTEA_encrypt(OutputMessage& msg) const;
+		bool XTEA_decrypt(NetworkMessage& msg) const;
+
 		friend class Connection;
 
 		OutputMessage_ptr outputBuffer;
-	private:
+
 		const ConnectionWeak_ptr connection;
 		uint32_t key[4] = {};
+		uint32_t sequenceNumber = 0;
 		bool encryptionEnabled = false;
-		bool checksumEnabled = true;
-		bool compactCrypt = false;
+		std::underlying_type<ChecksumMethods_t>::type checksumMethod = CHECKSUM_METHOD_NONE;
 		bool rawMessages = false;
 };
 

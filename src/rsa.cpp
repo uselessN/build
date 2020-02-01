@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2019  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,9 +33,9 @@ RSA::~RSA()
 	mpz_clear(d);
 }
 
-void RSA::setKey(const char* pString, const char* qString)
+void RSA::queryNanD(const char* pString, const char* qString)
 {
-	mpz_t p, q, e;
+	mpz_t p, q, e, n_1, d_1;
 	mpz_init2(p, 1024);
 	mpz_init2(q, 1024);
 	mpz_init(e);
@@ -47,7 +47,7 @@ void RSA::setKey(const char* pString, const char* qString)
 	mpz_set_ui(e, 65537);
 
 	// n = p * q
-	mpz_mul(n, p, q);
+	mpz_mul(n_1, p, q);
 
 	mpz_t p_1, q_1, pq_1;
 	mpz_init2(p_1, 1024);
@@ -61,7 +61,7 @@ void RSA::setKey(const char* pString, const char* qString)
 	mpz_mul(pq_1, p_1, q_1);
 
 	// d = e^-1 mod (p - 1)(q - 1)
-	mpz_invert(d, e, pq_1);
+	mpz_invert(d_1, e, pq_1);
 
 	mpz_clear(p_1);
 	mpz_clear(q_1);
@@ -70,9 +70,26 @@ void RSA::setKey(const char* pString, const char* qString)
 	mpz_clear(p);
 	mpz_clear(q);
 	mpz_clear(e);
+
+	void(*freefunc)(void *, size_t);
+	mp_get_memory_functions(NULL, NULL, &freefunc);
+
+	char* tmp = mpz_get_str(NULL, 10, n_1);
+	std::cout << "nString: " << tmp << std::endl;
+	freefunc(tmp, strlen(tmp)+1);
+
+	tmp = mpz_get_str(NULL, 10, d_1);
+	std::cout << "dString: " << tmp << std::endl;
+	freefunc(tmp, strlen(tmp)+1);
 }
 
-void RSA::decrypt(char* msg) const
+void RSA::setKey(const char* nString, const char* dString)
+{
+	mpz_set_str(n, nString, 10);
+	mpz_set_str(d, dString, 10);
+}
+
+void RSA::decrypt(char* msg) const 
 {
 	mpz_t c, m;
 	mpz_init2(c, 1024);

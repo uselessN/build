@@ -1,6 +1,6 @@
 /**
  * The Forgotten Server - a free and open-source MMORPG server emulator
- * Copyright (C) 2017  Mark Samman <mark.samman@gmail.com>
+ * Copyright (C) 2019  Mark Samman <mark.samman@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,11 +32,11 @@ class RSA
 		RSA(const RSA&) = delete;
 		RSA& operator=(const RSA&) = delete;
 
-		void setKey(const char* pString, const char* qString);
+		void queryNanD(const char* pString, const char* qString);
+		void setKey(const char* nString, const char* dString);
 		void decrypt(char* msg) const;
 
 	private:
-		//use only GMP
 		mpz_t n, d;
 };
 
