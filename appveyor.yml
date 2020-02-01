@@ -10,15 +10,13 @@ configuration:
   - Release
 
 matrix:
-  fast_finish: false
+  fast_finish: true
 
 only_commits:
   files:
     - src/
     - vc14/
-    - .appveyor.yml
-    - cmake/
-    - CMakeLists.txt
+    - appveyor.yml
 
 install:
   - cmd : vcpkg install boost-iostreams:x64-windows
@@ -32,16 +30,11 @@ install:
   - cmd : vcpkg install libmariadb:x64-windows
   - cmd : vcpkg install pugixml:x64-windows
   - cmd : vcpkg install mpir:x64-windows
-  - cmd : vcpkg install spdlog:x64-windows
 
 build:
   parallel: true
   # MSBuild verbosity level
-  verbosity: detailed
-
-# scripts to run after build (working directory and environment changes are persisted from the previous steps)
-after_build:
-  - 7z a -tzip otbr.zip -r .\vc14\*.exe -ir!.\vc14\*.dll
+  #verbosity: detailed
 
 cache:
   - c:\tools\vcpkg\installed\
@@ -49,4 +42,3 @@ cache:
 artifacts:
   - path: vc14\**\theforgottenserver*.exe
   - path: vc14\**\*.dll
-  - path: otbr.zip
